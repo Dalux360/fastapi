@@ -25,7 +25,7 @@ class Post(BaseModel):
     published: bool = True
     rating: Optional[int] = None
 
-#using this global variable to store the posts in memeory fro now until I create the database
+#using this global variable to store the posts in memeory for now until I create the database
 my_posts = [{"title": "titile of post 1", "contents": "content of post 1", "id":1},
             {"title": "favorite food", "contents": "jeqe", "id":2}] 
 
@@ -33,6 +33,18 @@ def post_locator(id):
     for p in my_posts:
         if p["id"] == id:
             return p
+        
+
+def find_post(id):
+    for i,p in enumerate(my_posts):
+        if p["id"] == id:
+            return i
+
+
+def delete_post(id):
+    for i,p in enumerate(my_posts):
+        if p["id"] == id:
+            return i
 
 @app.get("/") #path operation aka route for the get method
 def read_root(): #path operation function logic
@@ -42,7 +54,7 @@ def read_root(): #path operation function logic
 def get_posts():
     return {"data": my_posts}
 
-@app.post("/posts", status_code=201)
+@app.post("/posts", status_code=status.HTTP_201_CREATED)
 def create_posts(post:Post): # this is how we extract data from the body the client sent to us
     post_dict = post.model_dump()
     post_dict['id'] = randrange(10000000)
@@ -57,4 +69,22 @@ def get_post(id: int, response: Response):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"the message with id {id} was not found")
     return{"post_detail": post}
+
+
+    #now lets create the functionality for deleting a single post
+
+@app.delete("/posts/{id}",status_code=status.HTTP_204_NO_CONTENT)
+def delete_post(id: int):
+    index_to_delete = find_post(id)
+    if index_to_delete == None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"the message with id {id} was not found")
+    my_posts.pop(index_to_delete)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+ # functionality for updating a single post
+@app.put("/posts/{id}")
+def update_post(id: int, post:Post):
+    return {"message": "post {id} updated" }
      
